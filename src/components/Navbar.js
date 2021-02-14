@@ -6,7 +6,7 @@ class Navbar extends React.Component{
     Logout = () => {
         localStorage.removeItem("csrf_code")
         localStorage.removeItem("admin")
-        window.location = "/login"
+        // window.location = "/login"
     }
     render(){
         return(
@@ -43,8 +43,8 @@ class Navbar extends React.Component{
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link to="/transaction" className="nav-link">
-                                Transactions
+                            <Link to="/exam" className="nav-link">
+                                Exams
                             </Link>
                         </li>
                         <li className="nav-item">
@@ -53,7 +53,7 @@ class Navbar extends React.Component{
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link className="nav-link" onClick={() => this.Logout()}>
+                            <Link className="nav-link" to="/login" onClick={() => this.Logout()}>
                                 Logout
                             </Link>
                         </li>

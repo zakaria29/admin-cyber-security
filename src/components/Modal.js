@@ -14,9 +14,12 @@ export default class Modal extends React.Component{
                 <div className={size}>
                     <div className="modal-content">
                         <div className={`modal-header ${bgHeader}`}>
-                            <h4 className={`modal-title ${colorHeader}`}>
+                            <h5 className={`modal-title ${colorHeader}`}>
                                 {title}
-                            </h4>
+                            </h5>
+                            <button className="close" type="button" data-dismiss="modal" aria-label="Close">
+                                <span className={colorHeader} aria-hidden="true">&times;</span>
+                            </button>
                         </div>
                         <div className="modal-body">
                             {this.props.children}
