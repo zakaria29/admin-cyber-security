@@ -26,7 +26,7 @@ export default class ExamList extends React.Component{
             <div className="card">
                 <div className="card-header">
                     <div className="row">
-                        <div className="col-lg-7 col-md-10 col-sm-12">
+                        <div className="col-lg-5 col-md-10 col-sm-12">
                             <small className="text-primary">Exam Name</small>
                             <h6>{examName}</h6>
                             {this.statusComponent(examStatus)}
@@ -40,7 +40,7 @@ export default class ExamList extends React.Component{
                                 </button>
                             </h6>
                         </div>
-                        <div className="col-lg-3 col-md-6 col-sm-12">
+                        <div className="col-lg-5 col-md-8 col-sm-12">
                             <small className="text-info">Action</small> <br />
                             <button className="btn btn-sm btn-dark mx-1"
                             onClick={this.props.onSetCategory}>
@@ -54,6 +54,26 @@ export default class ExamList extends React.Component{
                             onClick={this.props.onExamDrop}>
                                 <span className="fa fa-trash"></span>
                             </button>
+                            <button className="btn btn-sm btn-success mx-1"
+                            onClick={this.props.getResult}>
+                                <span className="fas fa-chart-line"></span>
+                            </button>
+                            <div className="btn-group mx-1" role="group">
+                                <button type="button" id="btnGroup1"
+                                className="btn btn-warning dropdown-toggle"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Reset Exam
+                                </button>
+                                <div className="dropdown-menu" aria-labelledby="btnGroup1">
+                                    {this.props.teamList.map(team => (
+                                        <a className="dropdown-item" href="#"
+                                        onClick={() => this.props.onResetExam(team)}>
+                                            {team.team_name}
+                                        </a>
+                                    ))}
+                                    
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

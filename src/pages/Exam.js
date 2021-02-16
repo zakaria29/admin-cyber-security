@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar"
 import Modal from "../components/Modal"
 import ExamList from "../components/ExamList"
 import $ from "jquery"
+import ApexCharts from "apexcharts";
 
 export default class Exam extends React.Component{
     constructor(){
@@ -23,6 +24,8 @@ export default class Exam extends React.Component{
             selectedCategory: [],
             selectedExamID: "",
             selectedExamName: "",
+            results:[],
+            teams: []
         }
 
         if (localStorage.getItem("csrf_code")) {
@@ -58,6 +61,21 @@ export default class Exam extends React.Component{
                 window.location = "/login"                
             } else {
                 this.setState({exams: response.data})    
+            }
+            
+        })
+        .catch(e => console.log(e.message))
+    }
+
+    getTeams = () => {
+        let url = base_url + "/team"
+        axios.get(url, this.headerConfig())
+        .then(response => {
+            if (response.data.error) {
+                window.alert(response.data.error)
+                window.location = "/login"                
+            } else {
+                this.setState({teams: response.data})    
             }
             
         })
@@ -221,9 +239,89 @@ export default class Exam extends React.Component{
         
     }
 
+    resetExam = (e, team) => {
+        if (window.confirm(`Are you sure will reset ${e.exam_name} for ${team.team_name}?`)) {
+            let url = base_url + "/reset-exam"
+            let form = new FormData()
+            form.append("exam_id", e.exam_id)
+            form.append("team_id", team.team_id)
+
+            axios.post(url, form, this.headerConfig())
+            .then(response => {
+                let status = response.data.status
+                if (status) {
+                    window.alert(response.data.message)
+                    this.getExams()
+                } else {
+                    window.alert(response.data.message)
+                }
+            })
+            .catch(e => console.log(e.message))   
+        }        
+    }
+
     componentDidMount(){
         this.getExams()
         this.getActiveCategory()
+        this.getTeams()
+    }
+
+    getResult = ex => {
+        $("#score_modal").modal("show")
+        let url = base_url + "/get-score/" + ex.exam_id
+        axios.get(url, this.headerConfig())
+        .then(response => {
+            if (response.data.error) {
+                window.alert(response.data.error)
+                window.location = "/login"                
+            } else {    
+                let data = response.data
+                let yData = []
+                let xData = []
+                let total = 0
+                if(data.length > 0){
+                    this.setState({
+                        results: response.data[0].exam_details,
+                        exam: {...this.state.exam, exam_name: ex.exam_name}
+                    })
+                    data[0].exam_details.map(d => {
+                        xData.push(d.team.team_name)
+                        total = 0
+                        d.exam_details.map(c => {
+                            total += c.score
+                        })
+                        yData.push(total)
+                    })
+                }
+                var options = {
+                    chart: {
+                        type: 'bar',
+                        height:200
+                    },
+                    series: [{
+                        name: 'score',
+                        data: yData
+                    }],
+                    plotOptions:{
+                        bar: {
+                            horizontal:true
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    xaxis: {
+                        categories: xData
+                    }
+                }
+                document.querySelector("#lineChart").innerHTML = ""
+                var chart = new ApexCharts(document.querySelector("#lineChart"), options);
+                
+                chart.render();
+            }
+            
+        })
+        .catch(e => console.log(e.message))
     }
 
     render(){
@@ -254,6 +352,9 @@ export default class Exam extends React.Component{
                                 onExamDrop={() => this.dropExam(e)}
                                 onRefreshToken={() => this.refreshToken(e)}
                                 onSetCategory={() => this.bindSelectedCategory(e)}
+                                getResult={() => this.getResult(e)}
+                                teamList={this.state.teams}
+                                onResetExam={team => this.resetExam(e, team)}
                                 />
                             ))}
                         </div>
@@ -285,7 +386,7 @@ export default class Exam extends React.Component{
                 </Modal>
 
                 {/* category modal */}
-                <Modal id="category_modal" title="Selected Category"
+                <Modal id="category_modal" title="Select Category"
                 colorHeader="white" bgHeader="info" size="md">
                     <form onSubmit={ev => this.saveExamCategory(ev)}>
                         <small className="text-info">Exam Name</small>
@@ -309,8 +410,44 @@ export default class Exam extends React.Component{
                         <button type="submit" className="mt-2 btn btn-block btn-sm btn-info">
                             Save
                         </button>
-                    </form>
-                    
+                    </form>                   
+                </Modal>
+
+                {/* score modal */}
+                <Modal id="score_modal" title="Scoring Board"
+                colorHeader="white" bgHeader="info" size="lg">
+                    <h5 className="mx-2">
+                        Scoring Board of {this.state.exam.exam_name}
+                        {/* <LineChart dataSource={this.state.scores} /> */}
+                        <div id="lineChart"></div>
+                        <div className="card mt-2">
+                            <ul className="list-group">
+                                {this.state.results.map(res => (
+                                    <li className="list-group-item" key={res.do_exam_id}>
+                                        <h6>{res.team.team_name}</h6>
+                                        <ul>
+                                            {res.exam_details.map((it, index) => (
+                                                <li key={`${index}${it.do_exam_id}`}>
+                                                    <div className="row">
+                                                        <div className="col-sm-9">
+                                                            <small>
+                                                                {it.category.category_name}
+                                                            </small>
+                                                        </div>
+                                                        <div className="col-sm-3">
+                                                            <small>
+                                                                {it.score} points
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </h5>
                 </Modal>
             </div>
         )
